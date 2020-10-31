@@ -467,9 +467,9 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.7.4"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8f1c83949125de4a582aa2da15ae6324d91cf6a58a70ea407643941ff98f558"
+checksum = "8962c171f57fcfffa53f4df1bb15ec4c8cf26a7569459c9ceb62d94aab0d9584"
 dependencies = [
  "libc",
  "log",
@@ -984,8 +984,7 @@ dependencies = [
 [[package]]
 name = "tui"
 version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2eaeee894a1e9b90f80aa466fe59154fdb471980b5e104d8836fcea309ae17e"
+source = "git+https://github.com/knutwalker/tui-rs?branch=chart-top-left-legent#5764731fdfd6cc7050698cad681ce6ba8511cddd"
 dependencies = [
  "bitflags",
  "cassowary",

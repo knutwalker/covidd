@@ -12,9 +12,8 @@ use crossterm::{
 use std::io::{stdout, Write};
 use tui::{
     backend::{Backend, CrosstermBackend},
-    layout::Constraint,
     layout::Rect,
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     symbols,
     text::Span,
     widgets::{Axis, Block, Borders, Chart, Dataset, GraphType},

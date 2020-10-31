@@ -5,7 +5,6 @@ extern crate tracing;
 
 use color_eyre::Result;
 use data::AttributeData;
-use tracing::{info, instrument};
 
 mod api;
 mod data;
@@ -17,10 +16,6 @@ fn main() -> Result<()> {
     install_eyre()?;
 
     let data = api::get()?;
-
-    for data in data.iter().filter(|x| x.show) {
-        info!("Got data: {:#?}", data);
-    }
 
     let mut dates = Vec::with_capacity(data.len());
     let mut cases = Vec::with_capacity(data.len());
