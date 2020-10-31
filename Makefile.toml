@@ -1,0 +1,12 @@
+[tasks.readme]
+command = "cargo"
+args = ["readme", "--output", "README.md"]
+
+[tasks.ci]
+alias = "ci-flow"
+
+[tasks.t]
+alias = "test"
+
+[tasks.r]
+alias = "readme"
