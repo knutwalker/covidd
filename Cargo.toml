@@ -15,8 +15,9 @@ chrono = { version = "0.4.19", features = ["serde"] }
 color-eyre = { version = "0.5.6", features = ["issue-url", "tracing-error", "url"] }
 # console = { version = "0.13.0", default-features = false }
 crossterm = "0.18.2"
-# directories = "3.0.1"
+directories = "3.0.1"
 eyre = "0.6.2"
+fs2 = "0.4.3"
 # indicatif = { version = "0.15.0" }
 # itertools = "0.9.0"
 # num_cpus = { version = "1.13.0" }

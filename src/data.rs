@@ -13,10 +13,17 @@ pub struct ResponseData {
     pub features: Vec<FeatureData>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct CachedData {
-    pub created_at: u64,
+    #[serde(with = "chrono::serde::ts_seconds")]
+    pub created_at: DateTime<Utc>,
     pub attributes: Vec<AttributeData>,
+}
+#[derive(Debug, Serialize)]
+pub struct CachingData<'a> {
+    #[serde(with = "chrono::serde::ts_seconds")]
+    pub created_at: DateTime<Utc>,
+    pub attributes: &'a [AttributeData],
 }
 
 #[derive(Debug, Deserialize)]
