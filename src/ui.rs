@@ -63,6 +63,16 @@ pub fn draw(
                     }
                     KeyCode::PageUp => break Event::ZoomIn(10),
                     KeyCode::PageDown => break Event::ZoomOut(10),
+                    KeyCode::Char('1') | KeyCode::End => break Event::LastWeek(1),
+                    KeyCode::Char('2') => break Event::LastWeek(2),
+                    KeyCode::Char('3') => break Event::LastWeek(3),
+                    KeyCode::Char('4') => break Event::LastWeek(4),
+                    KeyCode::Char('5') => break Event::LastWeek(5),
+                    KeyCode::Char('6') => break Event::LastWeek(6),
+                    KeyCode::Char('7') => break Event::LastWeek(7),
+                    KeyCode::Char('8') => break Event::LastWeek(8),
+                    KeyCode::Char('9') => break Event::LastWeek(9),
+                    KeyCode::Esc | KeyCode::Home | KeyCode::Char('0') => break Event::AllData,
                     _ => {}
                 },
                 CEvent::Mouse(MouseEvent::ScrollUp(..)) => break Event::ZoomIn(1),
@@ -78,6 +88,8 @@ pub fn draw(
                     .min(dates.len().saturating_sub(1))
             }
             Event::ZoomOut(diff) => index = index.saturating_sub(diff),
+            Event::LastWeek(week) => index = dates.len().saturating_sub(7 * week),
+            Event::AllData => index = 0,
         }
     }
 
@@ -269,4 +281,6 @@ enum Event {
     Quit,
     ZoomIn(usize),
     ZoomOut(usize),
+    LastWeek(usize),
+    AllData,
 }
