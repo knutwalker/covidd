@@ -57,6 +57,10 @@ pub struct Run {
     #[clap(short, long, conflicts_with = "cache", default_value = "1 hour")]
     pub stale_after: Duration,
 
+    /// Timeout for the API call if new data needs to be fetched
+    #[clap(short, long, conflicts_with = "cache", default_value = "10 seconds")]
+    pub timeout: Duration,
+
     /// Skip the rendering of the UI
     #[clap(long, hidden = true)]
     pub no_ui: bool,
@@ -69,7 +73,8 @@ impl Default for Run {
             quiet: 0,
             force: false,
             cache: false,
-            stale_after: Duration::from(std::time::Duration::from_secs(0)),
+            stale_after: Duration::from(std::time::Duration::from_secs(3600)),
+            timeout: Duration::from(std::time::Duration::from_secs(10)),
             no_ui: false,
         }
     }

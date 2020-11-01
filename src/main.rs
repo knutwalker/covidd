@@ -64,14 +64,14 @@ fn cache_command(c: CacheCommand) -> Result<Option<Data>> {
 }
 
 fn current_data_with_updated_cache(r: Run) -> Result<Data> {
-    let cached_data = cached_data_if_current(r)?;
+    let cached_data = cached_data_if_current(r.force, r.cache, r.stale_after)?;
 
     let data = if let Some(data) = cached_data {
         debug!("Using data from cache from {}", data.created_at);
         data.attributes
     } else {
         debug!("Calling API for new data");
-        let data = api::read_from_api()?;
+        let data = api::call(r.timeout.into())?;
         cache::store_data(&data)?;
         data
     };
@@ -79,16 +79,20 @@ fn current_data_with_updated_cache(r: Run) -> Result<Data> {
     Ok(data)
 }
 
-fn cached_data_if_current(r: Run) -> Result<Option<CachedData>> {
-    let data = if r.force {
+fn cached_data_if_current(
+    ignore_cache: bool,
+    force_cache: bool,
+    stale_after: humantime::Duration,
+) -> Result<Option<CachedData>> {
+    let data = if ignore_cache {
         debug!("Ignoring cache since --force was given");
         None
     } else {
-        let data = data_from_cache(r.cache)?;
+        let data = data_from_cache(force_cache)?;
         trace!("Found some data in cache: {}", data.is_some());
         match data {
             Some(data) => {
-                if cache_is_stale(data.created_at, r.stale_after)? {
+                if cache_is_stale(data.created_at, stale_after)? {
                     None
                 } else {
                     Some(data)
@@ -147,11 +151,11 @@ fn verbosity_to_level(verbosity: i8) -> &'static str {
         i8::MIN..=-2 => "off",
         -1 => "error",
         0 => "warn",
-        1 => "covidd=info",
-        2 => "covidd=debug",
-        3 => "covidd=trace",
-        4 => "covidd=trace,info",
-        5 => "covidd=trace,debug",
+        1 => concat!(env!("CARGO_PKG_NAME"), "=info"),
+        2 => concat!(env!("CARGO_PKG_NAME"), "=debug"),
+        3 => concat!(env!("CARGO_PKG_NAME"), "=trace"),
+        4 => concat!(env!("CARGO_PKG_NAME"), "=trace,info"),
+        5 => concat!(env!("CARGO_PKG_NAME"), "=trace,debug"),
         6..=i8::MAX => "trace",
     }
 }
