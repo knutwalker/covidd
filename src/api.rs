@@ -1,9 +1,10 @@
 use crate::{
-    data::{CachedData, CachingData, Data, ResponseData},
+    data::{ApiResponse, CachedData, CachingData, Data, DataPoint},
     Result,
 };
 use directories::ProjectDirs;
 use std::{
+    convert::TryFrom,
     fmt::Debug,
     fs::File,
     io::ErrorKind,
@@ -182,11 +183,11 @@ fn read_from_api() -> Result<Data> {
         error!("Could not read API: {}", err);
         bail!("Could not read API: {}", err);
     }
-    let data = resp.into_json_deserialize::<ResponseData>()?;
+    let data = resp.into_json_deserialize::<ApiResponse>()?;
     let attributes = data
         .features
         .into_iter()
-        .map(|f| f.attributes)
+        .filter_map(|f| DataPoint::try_from(f).ok())
         .collect::<Vec<_>>();
 
     Ok(attributes)

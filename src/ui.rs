@@ -1,6 +1,4 @@
-// use crate::demo::{ui, App};
-use crate::Result;
-use chrono::{Date, Utc};
+use crate::{data::DataPoint, Result};
 use crossterm::{
     event::{
         self, DisableMouseCapture, EnableMouseCapture, Event as CEvent, KeyCode, KeyEvent,
@@ -20,13 +18,7 @@ use tui::{
     Frame, Terminal,
 };
 
-pub fn draw(
-    dates: &[Date<Utc>],
-    cases: &[u32],
-    recoveries: &[u32],
-    deaths: &[u32],
-    hospitalisations: &[u32],
-) -> Result<()> {
+pub fn draw(data_points: &[DataPoint]) -> Result<()> {
     enable_raw_mode()?;
 
     let mut stdout = stdout();
@@ -40,16 +32,7 @@ pub fn draw(
     let mut index = 0;
 
     loop {
-        terminal.draw(|f| {
-            draw_charts(
-                f,
-                dates.get(index..).unwrap_or_default(),
-                cases.get(index..).unwrap_or_default(),
-                recoveries.get(index..).unwrap_or_default(),
-                deaths.get(index..).unwrap_or_default(),
-                hospitalisations.get(index..).unwrap_or_default(),
-            )
-        })?;
+        terminal.draw(|f| draw_charts(f, data_points.get(index..).unwrap_or_default()))?;
 
         let event = loop {
             match event::read()? {
@@ -85,10 +68,10 @@ pub fn draw(
             Event::ZoomIn(diff) => {
                 index = index
                     .saturating_add(diff)
-                    .min(dates.len().saturating_sub(1))
+                    .min(data_points.len().saturating_sub(1))
             }
             Event::ZoomOut(diff) => index = index.saturating_sub(diff),
-            Event::LastWeek(week) => index = dates.len().saturating_sub(7 * week),
+            Event::LastWeek(week) => index = data_points.len().saturating_sub(7 * week),
             Event::AllData => index = 0,
         }
     }
@@ -107,63 +90,63 @@ pub fn draw(
     Ok(())
 }
 
-fn draw_charts<B>(
-    f: &mut Frame<B>,
-    dates: &[Date<Utc>],
-    cases: &[u32],
-    recoveries: &[u32],
-    deaths: &[u32],
-    hospitalisations: &[u32],
-) where
+fn draw_charts<B>(f: &mut Frame<B>, data_points: &[DataPoint])
+where
     B: Backend,
 {
-    let data = chart_data(f.size(), dates, cases, recoveries, deaths, hospitalisations);
+    let data = chart_data(f.size(), data_points);
     draw_chart_data(f, data);
 }
 
-#[instrument(level = "debug")]
-fn chart_data(
-    area: Rect,
-    dates: &[Date<Utc>],
-    cases: &[u32],
-    recoveries: &[u32],
-    deaths: &[u32],
-    hospitalisations: &[u32],
-) -> ChartData {
+fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
     let x_label_counts = usize::from(area.width.saturating_sub(6) / 7);
-    let x_label_steps = (dates.len() as f64 / x_label_counts.max(1) as f64)
+    let x_label_steps = (data_points.len() as f64 / x_label_counts.max(1) as f64)
         .ceil()
         .max(1.0) as usize;
-    let x_labels = dates
+    let x_labels = data_points
         .iter()
         .step_by(x_label_steps)
-        .map(|d| Span::raw(d.format("%d.%m").to_string()))
+        .map(|d| Span::raw(d.dates.date.format("%d.%m").to_string()))
         .collect::<Vec<_>>();
 
     let x_axis = Axis::default()
         .style(Style::default().fg(Color::Gray))
-        .bounds([0.0, dates.len() as f64])
+        .bounds([0.0, data_points.len() as f64])
         .labels(x_labels);
 
-    let min_bound = cases
+    let min_bound = data_points
         .iter()
+        .map(|d| {
+            d.cases
+                .total
+                .min(d.deaths.total)
+                .min(d.recoveries.total)
+                .min(d.hospitalisations.total)
+        })
         .min()
-        .min(deaths.iter().min())
-        .min(recoveries.iter().min())
-        .min(hospitalisations.iter().min())
-        .copied()
         .unwrap_or_default() as f64;
 
-    let max_bound = cases
+    let max_bound = data_points
         .iter()
+        .map(|d| {
+            d.cases
+                .total
+                .max(d.deaths.total)
+                .max(d.recoveries.total)
+                .max(d.hospitalisations.total)
+        })
         .max()
-        .max(deaths.iter().max())
-        .max(recoveries.iter().max())
-        .max(hospitalisations.iter().max())
-        .copied()
         .unwrap_or_default() as f64;
 
-    let bound_step = (max_bound - min_bound) / cases.len() as f64;
+    let max_incidence = data_points
+        .iter()
+        .map(|d| d.incidence)
+        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap_or_default() as f64;
+
+    let incidence_scale = max_bound / max_incidence;
+
+    let bound_step = (max_bound - min_bound) / data_points.len() as f64;
     let y_bounds = std::iter::successors(Some(min_bound), |y| {
         Some(*y + bound_step).filter(|y| *y <= max_bound)
     })
@@ -189,47 +172,56 @@ fn chart_data(
         .bounds([min_bound, max_bound])
         .labels(y_bounds);
 
-    let cases = cases
+    let recoveries = data_points
         .iter()
         .enumerate()
-        .map(|(x, &y)| (x as f64, y as f64))
+        .map(|(x, y)| (x as f64, y.recoveries.total as f64))
         .collect::<Vec<_>>();
 
-    let deaths = deaths
+    let hospitalisations = data_points
         .iter()
         .enumerate()
-        .map(|(x, &y)| (x as f64, y as f64))
+        .map(|(x, y)| (x as f64, y.hospitalisations.total as f64))
         .collect::<Vec<_>>();
 
-    let recoveries = recoveries
+    let deaths = data_points
         .iter()
         .enumerate()
-        .map(|(x, &y)| (x as f64, y as f64))
+        .map(|(x, y)| (x as f64, y.deaths.total as f64))
         .collect::<Vec<_>>();
 
-    let hospitalisations = hospitalisations
+    let cases = data_points
         .iter()
         .enumerate()
-        .map(|(x, &y)| (x as f64, y as f64))
+        .map(|(x, y)| (x as f64, y.cases.total as f64))
         .collect::<Vec<_>>();
+
+    let incidences = data_points
+        .iter()
+        .enumerate()
+        .map(|(x, y)| (x as f64, y.incidence * incidence_scale))
+        .collect::<Vec<_>>();
+
+    let current_incidence = data_points.last().map(|d| d.incidence).unwrap_or_default();
 
     ChartData {
-        cases,
-        deaths,
         recoveries,
         hospitalisations,
+        deaths,
+        cases,
+        incidences,
+        current_incidence,
         x_axis,
         y_axis,
     }
 }
 
-#[instrument(level = "debug", skip(f))]
 fn draw_chart_data<B: Backend>(f: &mut Frame<B>, data: ChartData) {
     let latest_recoveries = data.recoveries.last().copied().unwrap_or_default().1 as u32;
     let latest_hospitalisations =
         data.hospitalisations.last().copied().unwrap_or_default().1 as u32;
-    let latest_cases = data.cases.last().copied().unwrap_or_default().1 as u32;
     let latest_deaths = data.deaths.last().copied().unwrap_or_default().1 as u32;
+    let latest_cases = data.cases.last().copied().unwrap_or_default().1 as u32;
 
     let datasets = vec![
         Dataset::default()
@@ -247,7 +239,7 @@ fn draw_chart_data<B: Backend>(f: &mut Frame<B>, data: ChartData) {
         Dataset::default()
             .name(format!("{:>6} deaths      ", latest_deaths))
             .marker(symbols::Marker::Braille)
-            .style(Style::default().fg(Color::LightRed))
+            .style(Style::default().fg(Color::Magenta))
             .graph_type(GraphType::Line)
             .data(&data.deaths),
         Dataset::default()
@@ -256,6 +248,12 @@ fn draw_chart_data<B: Backend>(f: &mut Frame<B>, data: ChartData) {
             .style(Style::default().fg(Color::Yellow))
             .graph_type(GraphType::Line)
             .data(&data.cases),
+        Dataset::default()
+            .name(format!("{:>6.1} incidence   ", data.current_incidence))
+            .marker(symbols::Marker::Braille)
+            .style(Style::default().fg(Color::LightRed))
+            .graph_type(GraphType::Line)
+            .data(&data.incidences),
     ];
 
     let chart = Chart::new(datasets)
@@ -268,10 +266,12 @@ fn draw_chart_data<B: Backend>(f: &mut Frame<B>, data: ChartData) {
 
 #[derive(Debug)]
 struct ChartData {
-    cases: Vec<(f64, f64)>,
-    deaths: Vec<(f64, f64)>,
     recoveries: Vec<(f64, f64)>,
     hospitalisations: Vec<(f64, f64)>,
+    deaths: Vec<(f64, f64)>,
+    cases: Vec<(f64, f64)>,
+    incidences: Vec<(f64, f64)>,
+    current_incidence: f64,
     x_axis: Axis<'static>,
     y_axis: Axis<'static>,
 }

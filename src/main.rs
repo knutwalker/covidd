@@ -4,7 +4,6 @@ extern crate eyre;
 extern crate tracing;
 
 use color_eyre::Result;
-use data::AttributeData;
 
 mod api;
 mod data;
@@ -16,41 +15,7 @@ fn main() -> Result<()> {
     install_eyre()?;
 
     let data = api::get()?;
-
-    let mut dates = Vec::with_capacity(data.len());
-    let mut cases = Vec::with_capacity(data.len());
-    let mut deaths = Vec::with_capacity(data.len());
-    let mut recoveries = Vec::with_capacity(data.len());
-    let mut hospitalisations = Vec::with_capacity(data.len());
-
-    let items = data.into_iter().filter_map(
-        |AttributeData {
-             dates,
-             cases,
-             deaths,
-             recoveries,
-             hospitalisations,
-             ..
-         }| {
-            let date = dates.date?;
-            let cases = cases.total();
-            let deaths = deaths.total();
-            let recoveries = recoveries.total();
-            let hospitalisations = hospitalisations.total();
-
-            Some((date, cases, deaths, recoveries, hospitalisations))
-        },
-    );
-
-    for (date, infected, died, recovered, hospitalised) in items {
-        dates.push(date);
-        cases.push(infected);
-        deaths.push(died);
-        recoveries.push(recovered);
-        hospitalisations.push(hospitalised);
-    }
-
-    ui::draw(&dates, &cases, &recoveries, &deaths, &hospitalisations)?;
+    ui::draw(&data)?;
     Ok(())
 }
 
