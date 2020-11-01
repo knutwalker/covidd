@@ -200,6 +200,7 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
     let incidences = data_points
         .iter()
         .enumerate()
+        .filter(|(_, y)| y.incidence > 0.0)
         .map(|(x, y)| (x as f64, y.incidence * incidence_scale))
         .collect::<Vec<_>>();
 
