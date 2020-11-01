@@ -13,7 +13,7 @@ use crossterm::{
 };
 use std::io::{stdout, Write};
 use tui::{
-    backend::{Backend, CrosstermBackend},
+    backend::CrosstermBackend,
     layout::Rect,
     style::{Color, Style},
     symbols,
@@ -25,17 +25,14 @@ use tui::{
 #[instrument(err, skip(data_points, msg))]
 pub fn draw(data_points: &[DataPoint], msg: Messages) -> Result<()> {
     enable_raw_mode()?;
-
     let mut stdout = stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
 
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-
     terminal.clear()?;
 
     let mut index = 0;
-
     loop {
         debug!("Drawing charts with range {:?}", index..);
         terminal.draw(|f| draw_charts(f, data_points.get(index..).unwrap_or_default(), &msg))?;
@@ -84,12 +81,11 @@ pub fn draw(data_points: &[DataPoint], msg: Messages) -> Result<()> {
     }
 
     disable_raw_mode()?;
-    let c = terminal.backend_mut();
-    // Queue each command, then flush
-    Ok(())
-        .and_then(|()| crossterm::handle_command!(c, LeaveAlternateScreen))
-        .and_then(|()| crossterm::handle_command!(c, DisableMouseCapture))
-        .and_then(|()| Backend::flush(c).map_err(crossterm::ErrorKind::IoError))?;
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
     terminal.show_cursor()?;
 
     Ok(())
@@ -97,7 +93,7 @@ pub fn draw(data_points: &[DataPoint], msg: Messages) -> Result<()> {
 
 fn draw_charts<B>(f: &mut Frame<B>, data_points: &[DataPoint], msg: &Messages)
 where
-    B: Backend,
+    B: tui::backend::Backend,
 {
     let data = chart_data(f.size(), data_points);
     draw_chart_data(f, data, msg);
@@ -242,7 +238,7 @@ macro_rules! t {
     }};
 }
 
-fn draw_chart_data<B: Backend>(f: &mut Frame<B>, data: ChartData, msg: &Messages) {
+fn draw_chart_data<B: tui::backend::Backend>(f: &mut Frame<B>, data: ChartData, msg: &Messages) {
     let recovered = t!(int: msg, data.recoveries, MsgId::Recovered);
     let hospitalised = t!(int: msg, data.hospitalisations, MsgId::Hospitalised);
     let deaths = t!(int: msg, data.deaths, MsgId::Deaths);
