@@ -12,6 +12,7 @@ mod api;
 mod args;
 mod cache;
 mod data;
+mod messages;
 mod ui;
 
 #[instrument]
@@ -27,7 +28,8 @@ fn main() -> Result<()> {
     };
 
     if let Some(data) = data_for_ui {
-        ui::draw(&data)?;
+        let msg = messages::Messages::user_default()?;
+        ui::draw(&data, msg)?;
     }
 
     Ok(())

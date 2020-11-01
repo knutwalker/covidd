@@ -1,4 +1,8 @@
-use crate::{data::DataPoint, Result};
+use crate::{
+    data::DataPoint,
+    messages::{Messages, MsgId},
+    Result,
+};
 use crossterm::{
     event::{
         self, DisableMouseCapture, EnableMouseCapture, Event as CEvent, KeyCode, KeyEvent,
@@ -18,8 +22,8 @@ use tui::{
     Frame, Terminal,
 };
 
-#[instrument(err, skip(data_points))]
-pub fn draw(data_points: &[DataPoint]) -> Result<()> {
+#[instrument(err, skip(data_points, msg))]
+pub fn draw(data_points: &[DataPoint], msg: Messages) -> Result<()> {
     enable_raw_mode()?;
 
     let mut stdout = stdout();
@@ -34,7 +38,7 @@ pub fn draw(data_points: &[DataPoint]) -> Result<()> {
 
     loop {
         debug!("Drawing charts with range {:?}", index..);
-        terminal.draw(|f| draw_charts(f, data_points.get(index..).unwrap_or_default()))?;
+        terminal.draw(|f| draw_charts(f, data_points.get(index..).unwrap_or_default(), &msg))?;
 
         let event = loop {
             match event::read()? {
@@ -91,12 +95,12 @@ pub fn draw(data_points: &[DataPoint]) -> Result<()> {
     Ok(())
 }
 
-fn draw_charts<B>(f: &mut Frame<B>, data_points: &[DataPoint])
+fn draw_charts<B>(f: &mut Frame<B>, data_points: &[DataPoint], msg: &Messages)
 where
     B: Backend,
 {
     let data = chart_data(f.size(), data_points);
-    draw_chart_data(f, data);
+    draw_chart_data(f, data, msg);
 }
 
 fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
@@ -218,40 +222,60 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
     }
 }
 
-fn draw_chart_data<B: Backend>(f: &mut Frame<B>, data: ChartData) {
-    let latest_recoveries = data.recoveries.last().copied().unwrap_or_default().1 as u32;
-    let latest_hospitalisations =
-        data.hospitalisations.last().copied().unwrap_or_default().1 as u32;
-    let latest_deaths = data.deaths.last().copied().unwrap_or_default().1 as u32;
-    let latest_cases = data.cases.last().copied().unwrap_or_default().1 as u32;
+macro_rules! t {
+    (int: $msg:ident, $data:expr, $m:expr) => {
+        t!($msg, $data.last().copied().unwrap_or_default().1 as u32, $m)
+    };
+    ($msg:ident, $data:expr, $m:expr) => {{
+        let value = $data;
+        let translated = $msg.get($m, value);
+        match translated {
+            Ok(translated) => translated,
+            Err(e) => {
+                warn!(
+                    "Could not translate the value for {:?}, using fallback: {}",
+                    $m, e
+                );
+                format!("{} {}", value, $m.ident())
+            }
+        }
+    }};
+}
+
+fn draw_chart_data<B: Backend>(f: &mut Frame<B>, data: ChartData, msg: &Messages) {
+    let recovered = t!(int: msg, data.recoveries, MsgId::Recovered);
+    let hospitalised = t!(int: msg, data.hospitalisations, MsgId::Hospitalised);
+    let deaths = t!(int: msg, data.deaths, MsgId::Deaths);
+    let cases = t!(int: msg, data.cases, MsgId::Cases);
+    let incidence = t!(msg, data.current_incidence, MsgId::Incidence);
 
     let datasets = vec![
         Dataset::default()
-            .name(format!("{:>6} recovered   ", latest_recoveries))
+            .name(recovered)
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Green))
             .graph_type(GraphType::Line)
             .data(&data.recoveries),
         Dataset::default()
-            .name(format!("{:>6} hospitalised", latest_hospitalisations))
+            .name(hospitalised)
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Cyan))
             .graph_type(GraphType::Line)
             .data(&data.hospitalisations),
         Dataset::default()
-            .name(format!("{:>6} deaths      ", latest_deaths))
+            .name(deaths)
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Magenta))
             .graph_type(GraphType::Line)
             .data(&data.deaths),
         Dataset::default()
-            .name(format!("{:>6} total cases ", latest_cases))
+            .name(cases)
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Yellow))
             .graph_type(GraphType::Line)
             .data(&data.cases),
         Dataset::default()
-            .name(format!("{:>6.1} incidence   ", data.current_incidence))
+            .name(incidence)
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::LightRed))
             .graph_type(GraphType::Line)
