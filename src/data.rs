@@ -14,6 +14,7 @@ pub struct CachedData {
     pub created_at: DateTime<Utc>,
     pub attributes: Vec<DataPoint>,
 }
+
 #[derive(Debug, Serialize)]
 pub struct CachingData<'a> {
     #[serde(with = "chrono::serde::ts_seconds")]
@@ -193,7 +194,7 @@ impl TryFrom<ApiFeatures> for DataPoint {
             object_id,
             dates: Dates {
                 date,
-                date_ts: date_ts.unwrap_or_else(|| date.and_hms(0, 0, 0)),
+                date_ts: date_ts.unwrap_or_else(|| date.and_hms(12, 0, 0)),
                 date_range: date_range.unwrap_or_default(),
             },
             show,

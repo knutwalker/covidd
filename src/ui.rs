@@ -18,6 +18,7 @@ use tui::{
     Frame, Terminal,
 };
 
+#[instrument(err, skip(data_points))]
 pub fn draw(data_points: &[DataPoint]) -> Result<()> {
     enable_raw_mode()?;
 
@@ -32,6 +33,7 @@ pub fn draw(data_points: &[DataPoint]) -> Result<()> {
     let mut index = 0;
 
     loop {
+        debug!("Drawing charts with range {:?}", index..);
         terminal.draw(|f| draw_charts(f, data_points.get(index..).unwrap_or_default()))?;
 
         let event = loop {
@@ -63,6 +65,7 @@ pub fn draw(data_points: &[DataPoint]) -> Result<()> {
                 _ => {}
             }
         };
+        trace!("Input event: {:?}", event);
         match event {
             Event::Quit => break,
             Event::ZoomIn(diff) => {
@@ -77,9 +80,7 @@ pub fn draw(data_points: &[DataPoint]) -> Result<()> {
     }
 
     disable_raw_mode()?;
-
     let c = terminal.backend_mut();
-
     // Queue each command, then flush
     Ok(())
         .and_then(|()| crossterm::handle_command!(c, LeaveAlternateScreen))
