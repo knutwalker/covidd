@@ -34,7 +34,9 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: 10.7
     steps:
       - uses: actions/checkout@v2
+        if: startsWith(github.ref, 'refs/tags/')
       - uses: actions-rs/toolchain@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           profile: minimal
           toolchain: stable
@@ -42,16 +44,19 @@ jobs:
           override: true
       - name: Build release binaries
         uses: actions-rs/cargo@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           command: build
           args: --release --all-features --target=${{ matrix.target }}
       - name: Compress binaries
         uses: svenstaro/upx-action@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           file: target/${{ matrix.target }}/release/covidd${{ matrix.binary_postfix }}
           args: ${{ matrix.upx_args }}
           strip: ${{ matrix.strip }}
       - name: Packaging binary
+        if: startsWith(github.ref, 'refs/tags/')
         shell: bash
         run: |
           cd target/${{ matrix.target }}/release
