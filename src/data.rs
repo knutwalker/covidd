@@ -36,6 +36,9 @@ pub struct DataPoint {
     #[serde(rename = "Inzidenz")]
     pub incidence: f64,
 
+    #[serde(rename = "Inzidenz_Berechnet", default)]
+    pub incidence_calculated: f64,
+
     #[serde(flatten)]
     pub cases: Cases,
 
@@ -199,6 +202,7 @@ impl TryFrom<ApiFeatures> for DataPoint {
             },
             show,
             incidence: incidence.unwrap_or_default(),
+            incidence_calculated: 0.0,
             cases: Cases {
                 total: cases_total.unwrap_or_default(),
                 increase: cases_increase.unwrap_or_default(),

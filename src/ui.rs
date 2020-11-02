@@ -141,7 +141,7 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
 
     let max_incidence = data_points
         .iter()
-        .map(|d| d.incidence)
+        .map(|d| d.incidence_calculated)
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap_or_default() as f64;
 
@@ -200,11 +200,14 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
     let incidences = data_points
         .iter()
         .enumerate()
-        .filter(|(_, y)| y.incidence > 0.0)
-        .map(|(x, y)| (x as f64, y.incidence * incidence_scale))
+        .filter(|(_, y)| y.incidence_calculated > 0.0)
+        .map(|(x, y)| (x as f64, y.incidence_calculated * incidence_scale))
         .collect::<Vec<_>>();
 
-    let current_incidence = data_points.last().map(|d| d.incidence).unwrap_or_default();
+    let current_incidence = data_points
+        .last()
+        .map(|d| d.incidence_calculated)
+        .unwrap_or_default();
 
     ChartData {
         recoveries,
@@ -265,7 +268,7 @@ fn draw_chart_data<B: tui::backend::Backend>(f: &mut Frame<B>, data: ChartData, 
         Dataset::default()
             .name(incidence)
             .marker(symbols::Marker::Braille)
-            .style(Style::default().fg(Color::LightRed))
+            .style(Style::default().fg(Color::Red))
             .graph_type(GraphType::Line)
             .data(&data.incidences),
     ];
