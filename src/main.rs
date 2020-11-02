@@ -72,7 +72,7 @@ fn main() -> Result<()> {
     };
 
     if let Some(data) = data_for_ui {
-        let msg = messages::Messages::user_default()?;
+        let msg = messages::Messages::user_default();
         ui::draw(&data, msg)?;
     }
 

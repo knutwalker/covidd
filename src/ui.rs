@@ -218,32 +218,24 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
     }
 }
 
-macro_rules! t {
-    (int: $msg:ident, $data:expr, $m:expr) => {
-        t!($msg, $data.last().copied().unwrap_or_default().1 as u32, $m)
-    };
-    ($msg:ident, $data:expr, $m:expr) => {{
-        let value = $data;
-        let translated = $msg.get($m, value);
-        match translated {
-            Ok(translated) => translated,
-            Err(e) => {
-                warn!(
-                    "Could not translate the value for {:?}, using fallback: {}",
-                    $m, e
-                );
-                format!("{} {}", value, $m.ident())
-            }
-        }
-    }};
-}
-
 fn draw_chart_data<B: tui::backend::Backend>(f: &mut Frame<B>, data: ChartData, msg: &Messages) {
-    let recovered = t!(int: msg, data.recoveries, MsgId::Recovered);
-    let hospitalised = t!(int: msg, data.hospitalisations, MsgId::Hospitalised);
-    let deaths = t!(int: msg, data.deaths, MsgId::Deaths);
-    let cases = t!(int: msg, data.cases, MsgId::Cases);
-    let incidence = t!(msg, data.current_incidence, MsgId::Incidence);
+    let recovered = msg.get(
+        MsgId::Recovered,
+        data.recoveries.last().copied().unwrap_or_default().1 as u32,
+    );
+    let hospitalised = msg.get(
+        MsgId::Hospitalised,
+        data.hospitalisations.last().copied().unwrap_or_default().1 as u32,
+    );
+    let deaths = msg.get(
+        MsgId::Deaths,
+        data.deaths.last().copied().unwrap_or_default().1 as u32,
+    );
+    let cases = msg.get(
+        MsgId::Cases,
+        data.cases.last().copied().unwrap_or_default().1 as u32,
+    );
+    let incidence = msg.get(MsgId::Incidence, data.current_incidence);
 
     let datasets = vec![
         Dataset::default()
