@@ -14,6 +14,7 @@ use crossterm::{
 use std::io::{stdout, Write};
 use tui::{
     backend::CrosstermBackend,
+    layout::Constraint,
     layout::Rect,
     style::{Color, Style},
     symbols,
@@ -204,10 +205,31 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
         .map(|(x, y)| (x as f64, y.incidence_calculated * incidence_scale))
         .collect::<Vec<_>>();
 
-    let current_incidence = data_points
+    let (
+        cases_increase,
+        deaths_increase,
+        hospitalizations_increase,
+        recoveries_increase,
+        current_incidence,
+    ) = data_points
         .last()
-        .map(|d| d.incidence_calculated)
+        .map(|d| {
+            (
+                d.cases.increase,
+                d.deaths.increase,
+                d.hospitalisations.increase,
+                d.recoveries.increase,
+                d.incidence_calculated,
+            )
+        })
         .unwrap_or_default();
+
+    let incidence_increase = data_points
+        .iter()
+        .rev()
+        .take(2)
+        .map(|d| d.incidence_calculated)
+        .fold(0.0, |fst, snd| snd - fst);
 
     ChartData {
         recoveries,
@@ -216,6 +238,11 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
         cases,
         incidences,
         current_incidence,
+        cases_increase,
+        deaths_increase,
+        hospitalizations_increase,
+        recoveries_increase,
+        incidence_increase,
         x_axis,
         y_axis,
     }
@@ -225,20 +252,28 @@ fn draw_chart_data<B: tui::backend::Backend>(f: &mut Frame<B>, data: ChartData, 
     let recovered = msg.get(
         MsgId::Recovered,
         data.recoveries.last().copied().unwrap_or_default().1 as u32,
+        Some(data.recoveries_increase),
     );
     let hospitalised = msg.get(
         MsgId::Hospitalised,
         data.hospitalisations.last().copied().unwrap_or_default().1 as u32,
+        Some(data.hospitalizations_increase),
     );
     let deaths = msg.get(
         MsgId::Deaths,
         data.deaths.last().copied().unwrap_or_default().1 as u32,
+        Some(data.deaths_increase),
     );
     let cases = msg.get(
         MsgId::Cases,
         data.cases.last().copied().unwrap_or_default().1 as u32,
+        Some(data.cases_increase),
     );
-    let incidence = msg.get(MsgId::Incidence, data.current_incidence);
+    let incidence = msg.get(
+        MsgId::Incidence,
+        data.current_incidence,
+        Some(data.incidence_increase),
+    );
 
     let datasets = vec![
         Dataset::default()
@@ -275,6 +310,7 @@ fn draw_chart_data<B: tui::backend::Backend>(f: &mut Frame<B>, data: ChartData, 
 
     let chart = Chart::new(datasets)
         .block(Block::default().borders(Borders::ALL))
+        .hidden_legend_constraints((Constraint::Percentage(100), Constraint::Percentage(100)))
         .x_axis(data.x_axis)
         .y_axis(data.y_axis);
 
@@ -289,6 +325,11 @@ struct ChartData {
     cases: Vec<(f64, f64)>,
     incidences: Vec<(f64, f64)>,
     current_incidence: f64,
+    cases_increase: u32,
+    deaths_increase: u32,
+    hospitalizations_increase: u32,
+    recoveries_increase: u32,
+    incidence_increase: f64,
     x_axis: Axis<'static>,
     y_axis: Axis<'static>,
 }

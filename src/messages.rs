@@ -11,8 +11,13 @@ impl Messages {
         Self { bundle }
     }
 
-    pub fn get(&self, msg: MsgId, count: impl Into<f64>) -> String {
-        self.bundle.get(msg, count.into())
+    pub fn get(
+        &self,
+        msg: MsgId,
+        count: impl Into<f64>,
+        increase: Option<impl Into<f64>>,
+    ) -> String {
+        self.bundle.get(msg, count.into(), increase.map(Into::into))
     }
 }
 
@@ -26,19 +31,29 @@ pub enum MsgId {
 }
 
 pub trait Bundle {
-    fn get(&self, msg: MsgId, count: f64) -> String;
+    fn get(&self, msg: MsgId, count: f64, increase: Option<f64>) -> String;
 }
 
 struct BundleDe;
 
 impl Bundle for BundleDe {
-    fn get(&self, msg: MsgId, count: f64) -> String {
-        match msg {
-            MsgId::Recovered => format!("{:>6} Genesene", count),
-            MsgId::Hospitalised => format!("{:>6} Krankenhauseinweisungen ", count),
-            MsgId::Deaths => format!("{:>6} Sterbefälle", count),
-            MsgId::Cases => format!("{:>6} Fälle", count),
-            MsgId::Incidence => format!("{:>6.1} Inzidenz", count),
+    #[rustfmt::skip]
+    fn get(&self, msg: MsgId, count: f64, increase: Option<f64>) -> String {
+        match increase {
+            Some(inc) => match msg {
+                MsgId::Recovered    => format!(  "{:>6} (+{:>5}) Genesene",                count, inc),
+                MsgId::Hospitalised => format!(  "{:>6} (+{:>5}) Krankenhauseinweisungen", count, inc),
+                MsgId::Deaths       => format!(  "{:>6} (+{:>5}) Sterbefälle",             count, inc),
+                MsgId::Cases        => format!(  "{:>6} (+{:>5}) Fälle",                   count, inc),
+                MsgId::Incidence    => format!("{:>6.1} (+{:>5.1}) Inzidenz",              count, inc),
+            }
+            None => match msg {
+                MsgId::Recovered    => format!(  "{:>6} Genesene"               , count),
+                MsgId::Hospitalised => format!(  "{:>6} Krankenhauseinweisungen", count),
+                MsgId::Deaths       => format!(  "{:>6} Sterbefälle"            , count),
+                MsgId::Cases        => format!(  "{:>6} Fälle"                  , count),
+                MsgId::Incidence    => format!("{:>6.1} Inzidenz"               , count),
+            }
         }
     }
 }
@@ -46,13 +61,23 @@ impl Bundle for BundleDe {
 struct BundleEn;
 
 impl Bundle for BundleEn {
-    fn get(&self, msg: MsgId, count: f64) -> String {
-        match msg {
-            MsgId::Recovered => format!("{:>6} recovered", count),
-            MsgId::Hospitalised => format!("{:>6} hospitalised ", count),
-            MsgId::Deaths => format!("{:>6} deaths", count),
-            MsgId::Cases => format!("{:>6} total cases", count),
-            MsgId::Incidence => format!("{:>6.1} incidence", count),
+    #[rustfmt::skip]
+    fn get(&self, msg: MsgId, count: f64, increase: Option<f64>) -> String {
+        match increase {
+            Some(inc) => match msg {
+                MsgId::Recovered    => format!(  "{:>6} (+{:>5}) recovered",    count, inc),
+                MsgId::Hospitalised => format!(  "{:>6} (+{:>5}) hospitalised", count, inc),
+                MsgId::Deaths       => format!(  "{:>6} (+{:>5}) deaths",       count, inc),
+                MsgId::Cases        => format!(  "{:>6} (+{:>5}) total cases",  count, inc),
+                MsgId::Incidence    => format!("{:>6.1} (+{:>5.1}) incidence",  count, inc),
+            }
+            None => match msg {
+                MsgId::Recovered    => format!(  "{:>6} recovered"   , count),
+                MsgId::Hospitalised => format!(  "{:>6} hospitalised", count),
+                MsgId::Deaths       => format!(  "{:>6} deaths"      , count),
+                MsgId::Cases        => format!(  "{:>6} total cases" , count),
+                MsgId::Incidence    => format!("{:>6.1} incidence"   , count),
+            }
         }
     }
 }
