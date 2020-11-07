@@ -229,7 +229,7 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
         .rev()
         .take(2)
         .map(|d| d.incidence_calculated)
-        .fold(0.0, |fst, snd| snd - fst);
+        .fold(0.0, |inc, d| if inc == 0.0 { d } else { inc - d });
 
     ChartData {
         recoveries,

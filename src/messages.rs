@@ -41,11 +41,11 @@ impl Bundle for BundleDe {
     fn get(&self, msg: MsgId, count: f64, increase: Option<f64>) -> String {
         match increase {
             Some(inc) => match msg {
-                MsgId::Recovered    => format!(  "{:>6} (+{:>5}) Genesene",                count, inc),
-                MsgId::Hospitalised => format!(  "{:>6} (+{:>5}) Krankenhauseinweisungen", count, inc),
-                MsgId::Deaths       => format!(  "{:>6} (+{:>5}) Sterbefälle",             count, inc),
-                MsgId::Cases        => format!(  "{:>6} (+{:>5}) Fälle",                   count, inc),
-                MsgId::Incidence    => format!("{:>6.1} (+{:>5.1}) Inzidenz",              count, inc),
+                MsgId::Recovered    => format!(  "{:>6} ({:>+5}) Genesene",                count, inc),
+                MsgId::Hospitalised => format!(  "{:>6} ({:>+5}) Krankenhauseinweisungen", count, inc),
+                MsgId::Deaths       => format!(  "{:>6} ({:>+5}) Sterbefälle",             count, inc),
+                MsgId::Cases        => format!(  "{:>6} ({:>+5}) Fälle",                   count, inc),
+                MsgId::Incidence    => format!("{:>6.1} ({:>+5.1}) Inzidenz",              count, inc),
             }
             None => match msg {
                 MsgId::Recovered    => format!(  "{:>6} Genesene"               , count),
@@ -65,11 +65,11 @@ impl Bundle for BundleEn {
     fn get(&self, msg: MsgId, count: f64, increase: Option<f64>) -> String {
         match increase {
             Some(inc) => match msg {
-                MsgId::Recovered    => format!(  "{:>6} (+{:>5}) recovered",    count, inc),
-                MsgId::Hospitalised => format!(  "{:>6} (+{:>5}) hospitalised", count, inc),
-                MsgId::Deaths       => format!(  "{:>6} (+{:>5}) deaths",       count, inc),
-                MsgId::Cases        => format!(  "{:>6} (+{:>5}) total cases",  count, inc),
-                MsgId::Incidence    => format!("{:>6.1} (+{:>5.1}) incidence",  count, inc),
+                MsgId::Recovered    => format!(  "{:>6} ({:>+5}) recovered",    count, inc),
+                MsgId::Hospitalised => format!(  "{:>6} ({:>+5}) hospitalised", count, inc),
+                MsgId::Deaths       => format!(  "{:>6} ({:>+5}) deaths",       count, inc),
+                MsgId::Cases        => format!(  "{:>6} ({:>+5}) total cases",  count, inc),
+                MsgId::Incidence    => format!("{:>6.1} ({:>+5.1}) incidence",  count, inc),
             }
             None => match msg {
                 MsgId::Recovered    => format!(  "{:>6} recovered"   , count),
