@@ -64,6 +64,7 @@ pub fn draw(data_points: &[DataPoint], msg: Messages) -> Result<()> {
                 },
                 CEvent::Mouse(MouseEvent::ScrollUp(..)) => break Event::ZoomIn(1),
                 CEvent::Mouse(MouseEvent::ScrollDown(..)) => break Event::ZoomOut(1),
+                CEvent::Resize(_, _) => break Event::ZoomOut(0), // re-render
                 _ => {}
             }
         };
