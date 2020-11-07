@@ -10,9 +10,10 @@ repository = "https://github.com/knutwalker/covidd/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+atty = "0.2.14"
 chrono = { version = "0.4.19", features = ["serde"] }
 clap = "3.0.0-beta.2"
-color-eyre = { version = "0.5.6", features = ["issue-url"] }
+color-eyre = { version = "0.5.7", features = ["issue-url"] }
 crossterm = "0.18.2"
 directories = "3.0.1"
 eyre = "0.6.2"
@@ -24,7 +25,7 @@ serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0.59"
 tracing = "0.1.21"
 tracing-error = "0.1.2"
-tracing-subscriber = "0.2.14"
+tracing-subscriber = "0.2.15"
 
 [dependencies.tui]
 git = "https://github.com/knutwalker/tui-rs"
@@ -32,10 +33,6 @@ branch = "chart-top-left-legent"
 version = "0.12.0"
 default-features = false
 features = ["crossterm"]
-
-[dev-dependencies]
-test-case = "1.0.0"
-pretty_assertions = "0.6.1"
 
 [profile.dev.package.backtrace]
 opt-level = 3

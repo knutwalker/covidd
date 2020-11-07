@@ -47,10 +47,12 @@ extern crate eyre;
 #[macro_use]
 extern crate tracing;
 
+use std::fmt::Display;
+
 use args::{CacheCommand, Command, Run};
 use chrono::{DateTime, Duration, Utc};
 use color_eyre::{Help, Result};
-use data::{CachedData, Data};
+use data::{CachedData, Data, DataPoint};
 
 mod api;
 mod args;
@@ -72,8 +74,13 @@ fn main() -> Result<()> {
     };
 
     if let Some(data) = data_for_ui {
-        let msg = messages::Messages::user_default();
-        ui::draw(&data, msg)?;
+        if atty::is(atty::Stream::Stdout) {
+            let msg = messages::Messages::user_default();
+            ui::draw(&data, msg)?;
+        } else {
+            let data = summarized_data(&data);
+            println!("{}", data)
+        }
     }
 
     Ok(())
@@ -173,6 +180,61 @@ fn cache_is_stale(created: DateTime<Utc>, stale_after: humantime::Duration) -> R
         is_current
     );
     Ok(!is_current)
+}
+
+fn summarized_data(data_points: &[DataPoint]) -> SummarizedData {
+    let mut data = SummarizedData::default();
+    let mut dp = data_points.iter().rev();
+
+    if let Some(dp) = dp.next() {
+        data.incidence = dp.incidence_calculated;
+        data.cases = dp.cases.total;
+        data.deaths = dp.deaths.total;
+        data.hospitalisations = dp.hospitalisations.total;
+        data.recoveries = dp.recoveries.total;
+    }
+    if let Some(dp) = dp.next() {
+        data.incidence_increase = data.incidence - dp.incidence_calculated;
+        data.cases_increase = data.cases - dp.cases.total;
+        data.deaths_increase = data.deaths - dp.deaths.total;
+        data.hospitalisations_increase = data.hospitalisations - dp.hospitalisations.total;
+        data.recoveries_increase = data.recoveries - dp.recoveries.total;
+    }
+
+    data
+}
+
+#[derive(Debug, Default)]
+struct SummarizedData {
+    recoveries: u32,
+    recoveries_increase: u32,
+    hospitalisations: u32,
+    hospitalisations_increase: u32,
+    deaths: u32,
+    deaths_increase: u32,
+    cases: u32,
+    cases_increase: u32,
+    incidence: f64,
+    incidence_increase: f64,
+}
+
+impl Display for SummarizedData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "incidence: {}", self.incidence)?;
+        writeln!(f, "incidence_increase: {}", self.incidence_increase)?;
+        writeln!(f, "cases: {}", self.cases)?;
+        writeln!(f, "cases_increase: {}", self.cases_increase)?;
+        writeln!(f, "deaths: {}", self.deaths)?;
+        writeln!(f, "deaths_increase: {}", self.deaths_increase)?;
+        writeln!(f, "hospitalisations: {}", self.hospitalisations)?;
+        writeln!(
+            f,
+            "hospitalisations_increase: {}",
+            self.hospitalisations_increase
+        )?;
+        writeln!(f, "recoveries: {}", self.recoveries)?;
+        writeln!(f, "recoveries_increase: {}", self.recoveries_increase)
+    }
 }
 
 fn install_tracing(verbosity: i8) {

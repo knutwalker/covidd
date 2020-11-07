@@ -37,23 +37,21 @@ pub fn call(timeout: Duration) -> Result<Data> {
             counts.rolling_increase.copy_within(1..7, 0);
             counts.rolling_increase[6] = d.cases.reported;
 
-            counts.cases += d.cases.increase;
-            counts.deaths += d.deaths.increase;
-            counts.recoveries += d.recoveries.increase;
-            counts.hospitalisations += d.hospitalisations.increase;
+            macro_rules! inc {
+                ($($value:ident),+) => {{
+                    $(
+                        if d.$value.total > 0 {
+                            d.$value.increase = d.$value.total.saturating_sub(counts.$value);
+                            counts.$value = d.$value.total;
+                        } else {
+                            counts.$value += d.$value.increase;
+                            d.$value.total = counts.$value;
+                        }
+                    )+
+                }};
+            }
 
-            if d.cases.total == 0 {
-                d.cases.total = counts.cases;
-            }
-            if d.deaths.total == 0 {
-                d.deaths.total = counts.deaths;
-            }
-            if d.recoveries.total == 0 {
-                d.recoveries.total = counts.recoveries;
-            }
-            if d.hospitalisations.total == 0 {
-                d.hospitalisations.total = counts.hospitalisations;
-            }
+            inc!(cases, deaths, recoveries, hospitalisations);
 
             Some(d)
         })
