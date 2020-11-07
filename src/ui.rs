@@ -296,17 +296,17 @@ fn draw_chart_data<B: tui::backend::Backend>(f: &mut Frame<B>, data: ChartData, 
             .graph_type(GraphType::Line)
             .data(&data.deaths),
         Dataset::default()
-            .name(cases)
-            .marker(symbols::Marker::Braille)
-            .style(Style::default().fg(Color::Yellow))
-            .graph_type(GraphType::Line)
-            .data(&data.cases),
-        Dataset::default()
             .name(incidence)
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Red))
             .graph_type(GraphType::Line)
             .data(&data.incidences),
+        Dataset::default()
+            .name(cases)
+            .marker(symbols::Marker::Braille)
+            .style(Style::default().fg(Color::Yellow))
+            .graph_type(GraphType::Line)
+            .data(&data.cases),
     ];
 
     let chart = Chart::new(datasets)
