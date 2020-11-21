@@ -16,6 +16,7 @@ use tui::{
     backend::CrosstermBackend,
     layout::Constraint,
     layout::Rect,
+    style::Modifier,
     style::{Color, Style},
     symbols,
     text::Span,
@@ -193,6 +194,12 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
         .map(|(x, y)| (x as f64, y.deaths.total as f64))
         .collect::<Vec<_>>();
 
+    let actives = data_points
+        .iter()
+        .enumerate()
+        .map(|(x, y)| (x as f64, y.active_cases() as f64))
+        .collect::<Vec<_>>();
+
     let cases = data_points
         .iter()
         .enumerate()
@@ -225,21 +232,33 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
         })
         .unwrap_or_default();
 
-    let incidence_increase = data_points
-        .iter()
-        .rev()
-        .take(2)
-        .map(|d| d.incidence_calculated)
-        .fold(0.0, |inc, d| if inc == 0.0 { d } else { inc - d });
+    // let incidence_increase = data_points
+    //     .iter()
+    //     .rev()
+    //     .take(2)
+    //     .map(|d| d.incidence_calculated)
+    //     .fold(0.0, |inc, d| if inc == 0.0 { d } else { inc - d });
+
+    let (incidence_increase, actives_increase) = data_points
+        .windows(2)
+        .last()
+        .map(|win| {
+            let incidence = win[1].incidence_calculated - win[0].incidence_calculated;
+            let active = win[1].active_cases() as i32 - win[0].active_cases() as i32;
+            (incidence, active)
+        })
+        .unwrap_or_default();
 
     ChartData {
         recoveries,
         hospitalisations,
         deaths,
+        actives,
         cases,
         incidences,
         current_incidence,
         cases_increase,
+        actives_increase,
         deaths_increase,
         hospitalizations_increase,
         recoveries_increase,
@@ -264,6 +283,11 @@ fn draw_chart_data<B: tui::backend::Backend>(f: &mut Frame<B>, data: ChartData, 
         MsgId::Deaths,
         data.deaths.last().copied().unwrap_or_default().1 as u32,
         Some(data.deaths_increase),
+    );
+    let active = msg.get(
+        MsgId::Active,
+        data.actives.last().copied().unwrap_or_default().1 as u32,
+        Some(data.actives_increase),
     );
     let cases = msg.get(
         MsgId::Cases,
@@ -296,6 +320,16 @@ fn draw_chart_data<B: tui::backend::Backend>(f: &mut Frame<B>, data: ChartData, 
             .graph_type(GraphType::Line)
             .data(&data.deaths),
         Dataset::default()
+            .name(active)
+            .marker(symbols::Marker::Braille)
+            .style(
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::DIM),
+            )
+            .graph_type(GraphType::Line)
+            .data(&data.actives),
+        Dataset::default()
             .name(incidence)
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Red))
@@ -323,11 +357,13 @@ struct ChartData {
     recoveries: Vec<(f64, f64)>,
     hospitalisations: Vec<(f64, f64)>,
     deaths: Vec<(f64, f64)>,
+    actives: Vec<(f64, f64)>,
     cases: Vec<(f64, f64)>,
     incidences: Vec<(f64, f64)>,
     current_incidence: f64,
     cases_increase: u32,
     deaths_increase: u32,
+    actives_increase: i32,
     hospitalizations_increase: u32,
     recoveries_increase: u32,
     incidence_increase: f64,

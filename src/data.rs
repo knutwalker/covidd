@@ -52,6 +52,13 @@ pub struct DataPoint {
     pub hospitalisations: Hospitalisations,
 }
 
+impl DataPoint {
+    pub fn active_cases(&self) -> u32 {
+        let resolved = self.recoveries.total + self.deaths.total + self.hospitalisations.total;
+        self.cases.total.saturating_sub(resolved)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Dates {
     #[serde(rename = "Datum", with = "date_format")]

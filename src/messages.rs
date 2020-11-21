@@ -26,6 +26,7 @@ pub enum MsgId {
     Recovered,
     Hospitalised,
     Deaths,
+    Active,
     Cases,
     Incidence,
 }
@@ -44,6 +45,7 @@ impl Bundle for BundleDe {
                 MsgId::Recovered    => format!(  "{:>6} ({:>+5}) Genesene",                count, inc),
                 MsgId::Hospitalised => format!(  "{:>6} ({:>+5}) Krankenhauseinweisungen", count, inc),
                 MsgId::Deaths       => format!(  "{:>6} ({:>+5}) Sterbefälle",             count, inc),
+                MsgId::Active       => format!(  "{:>6} ({:>+5}) Active Fälle",            count, inc),
                 MsgId::Cases        => format!(  "{:>6} ({:>+5}) Fälle",                   count, inc),
                 MsgId::Incidence    => format!("{:>6.1} ({:>+5.1}) Inzidenz",              count, inc),
             }
@@ -51,6 +53,7 @@ impl Bundle for BundleDe {
                 MsgId::Recovered    => format!(  "{:>6} Genesene"               , count),
                 MsgId::Hospitalised => format!(  "{:>6} Krankenhauseinweisungen", count),
                 MsgId::Deaths       => format!(  "{:>6} Sterbefälle"            , count),
+                MsgId::Active       => format!(  "{:>6} Active Fälle"           , count),
                 MsgId::Cases        => format!(  "{:>6} Fälle"                  , count),
                 MsgId::Incidence    => format!("{:>6.1} Inzidenz"               , count),
             }
@@ -68,15 +71,17 @@ impl Bundle for BundleEn {
                 MsgId::Recovered    => format!(  "{:>6} ({:>+5}) recovered",    count, inc),
                 MsgId::Hospitalised => format!(  "{:>6} ({:>+5}) hospitalised", count, inc),
                 MsgId::Deaths       => format!(  "{:>6} ({:>+5}) deaths",       count, inc),
+                MsgId::Active       => format!(  "{:>6} ({:>+5}) active cases", count, inc),
                 MsgId::Cases        => format!(  "{:>6} ({:>+5}) total cases",  count, inc),
                 MsgId::Incidence    => format!("{:>6.1} ({:>+5.1}) incidence",  count, inc),
             }
             None => match msg {
-                MsgId::Recovered    => format!(  "{:>6} recovered"   , count),
-                MsgId::Hospitalised => format!(  "{:>6} hospitalised", count),
-                MsgId::Deaths       => format!(  "{:>6} deaths"      , count),
-                MsgId::Cases        => format!(  "{:>6} total cases" , count),
-                MsgId::Incidence    => format!("{:>6.1} incidence"   , count),
+                MsgId::Recovered    => format!(  "{:>6} recovered"    , count),
+                MsgId::Hospitalised => format!(  "{:>6} hospitalised" , count),
+                MsgId::Deaths       => format!(  "{:>6} deaths"       , count),
+                MsgId::Active       => format!(  "{:>6} active cases" , count),
+                MsgId::Cases        => format!(  "{:>6} total cases"  , count),
+                MsgId::Incidence    => format!("{:>6.1} incidence"    , count),
             }
         }
     }
