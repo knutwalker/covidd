@@ -124,6 +124,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
 
 [[package]]
+name = "bstr"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "473fc6b38233f9af7baa94fb5852dca389e3d95b8e21c8e3719301462c5d9faf"
+dependencies = [
+ "lazy_static",
+ "memchr",
+ "regex-automata",
+ "serde",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -256,6 +268,7 @@ dependencies = [
  "clap",
  "color-eyre",
  "crossterm",
+ "csv",
  "directories",
  "eyre",
  "fs2",
@@ -307,6 +320,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "csv"
+version = "1.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc4666154fd004af3fd6f1da2e81a96fd5a81927fe8ddb6ecc79e2aa6e138b54"
+dependencies = [
+ "bstr",
+ "csv-core",
+ "itoa",
+ "ryu",
+ "serde",
+]
+
+[[package]]
+name = "csv-core"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b2466559f260f48ad25fe6317b3c8dac77b5bdb5763ac7d9d6103530663bc90"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "directories"
 version = "3.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -328,9 +363,9 @@ dependencies = [
 
 [[package]]
 name = "eyre"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "534ce924bff9118be8b28b24ede6bf7e96a00b53e4ded25050aa7b526e051e1a"
+checksum = "5f29abf4740a4778632fe27a4f681ef5b7a6f659aeba3330ac66f48e20cfa3b7"
 dependencies = [
  "indenter",
  "once_cell",
@@ -1137,8 +1172,8 @@ dependencies = [
 
 [[package]]
 name = "tui"
-version = "0.12.0"
-source = "git+https://github.com/knutwalker/tui-rs?branch=chart-top-left-legent#36b69bb5d99337f327c706a66e7f1e04a2926875"
+version = "0.13.0"
+source = "git+https://github.com/knutwalker/tui-rs?branch=chart-top-left-legent#4e4cce28455a1f79a2902d9312a1c02f094efa82"
 dependencies = [
  "bitflags",
  "cassowary",

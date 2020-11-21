@@ -171,6 +171,17 @@ impl TryFrom<ApiFeatures> for DataPoint {
     type Error = ();
 
     fn try_from(value: ApiFeatures) -> Result<Self, Self::Error> {
+        match DataPoint::try_from(value.attributes) {
+            Ok(dp) => Ok(dp),
+            Err(_) => Err(()),
+        }
+    }
+}
+
+impl TryFrom<ApiAttributes> for DataPoint {
+    type Error = color_eyre::Report;
+
+    fn try_from(value: ApiAttributes) -> Result<Self, Self::Error> {
         let ApiAttributes {
             object_id,
             date,
@@ -188,10 +199,10 @@ impl TryFrom<ApiFeatures> for DataPoint {
             hospitalisations_total,
             hospitalisations_increase,
             hospitalisations_beds_in_use,
-        } = value.attributes;
+        } = value;
         let date = match date {
             Some(date) => date,
-            None => return Err(()),
+            None => return Err(color_eyre::eyre::eyre!("no date set")),
         };
         let data_point = DataPoint {
             object_id,
