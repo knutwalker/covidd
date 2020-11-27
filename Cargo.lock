@@ -1173,7 +1173,7 @@ dependencies = [
 [[package]]
 name = "tui"
 version = "0.13.0"
-source = "git+https://github.com/knutwalker/tui-rs?branch=chart-top-left-legent#4e4cce28455a1f79a2902d9312a1c02f094efa82"
+source = "git+https://github.com/knutwalker/tui-rs?branch=chart-top-left-legent#a82f8a8cacfee9b2eb00f1c494d729db82243c04"
 dependencies = [
  "bitflags",
  "cassowary",
@@ -1202,9 +1202,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-segmentation"
-version = "1.6.0"
+version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e83e153d1053cbb5a118eeff7fd5be06ed99153f00dbcd8ae310c5fb2b22edc0"
+checksum = "bb0d2e7be6ae3a5fa87eed5fb451aff96f2573d2694942e40543ae0bbe19c796"
 
 [[package]]
 name = "unicode-width"
