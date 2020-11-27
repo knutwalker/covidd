@@ -11,8 +11,9 @@ static UA: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")
 pub fn call(timeout: Duration) -> Result<Data> {
     let population = f64::from(populace(timeout)?);
 
-    let current = get_current_data(timeout, population)?;
-    let data = get_full_data(current, timeout, population)?;
+    let initial_data = get_full_data(timeout, population)?;
+    let current_data = get_current_data(timeout, population, initial_data.len())?;
+    let data = correct_data(vec![initial_data, current_data], population);
     Ok(data)
 }
 
@@ -48,12 +49,12 @@ pub fn populace(timeout: Duration) -> Result<u32> {
 }
 
 #[instrument(err)]
-pub fn get_current_data(timeout: Duration, population: f64) -> Result<Option<DataPoint>> {
-    static JSON_URL: &str = "https://services.arcgis.com/ORpvigFPJUhb8RDF/arcgis/rest/services/corona_DD_7_Sicht/FeatureServer/0/query?f=pjson&where=ObjectId%3E=0&outFields=*";
+pub fn get_current_data(timeout: Duration, population: f64, skip: usize) -> Result<Data> {
+    let url = format!("https://services.arcgis.com/ORpvigFPJUhb8RDF/arcgis/rest/services/corona_DD_7_Sicht/FeatureServer/0/query?f=pjson&where=ObjectId%3E{}&outFields=*", skip);
 
-    debug!("Reading from API");
+    debug!("Reading from API: {}", url);
 
-    let data = minreq::get(JSON_URL)
+    let data = minreq::get(url)
         .with_header("User-Agent", UA)
         .with_timeout(timeout.as_secs())
         .send()?
@@ -62,18 +63,14 @@ pub fn get_current_data(timeout: Duration, population: f64) -> Result<Option<Dat
     let data = data
         .features
         .into_iter()
-        .last()
-        .and_then(|f| DataPoint::try_from(f).ok());
+        .map(|f| DataPoint::try_from(f.attributes))
+        .collect::<Result<Vec<_>>>()?;
 
     Ok(data)
 }
 
 #[instrument(err)]
-pub fn get_full_data(
-    latest: Option<DataPoint>,
-    timeout: Duration,
-    population: f64,
-) -> Result<Data> {
+pub fn get_full_data(timeout: Duration, population: f64) -> Result<Vec<DataPoint>> {
     static CSV_URL: &str = "https://opendata.dresden.de/duva2ckan/files/de-sn-dresden-corona_-_covid-19_-_fallzahlen_md1_dresden_2020/content";
 
     debug!("Reading CSV from data portal");
@@ -122,46 +119,54 @@ pub fn get_full_data(
             let att = att?;
             DataPoint::try_from(att)
         })
-        .chain(latest.map(Ok))
-        .scan(Counts::default(), |counts, d| {
-            let mut d = match d {
-                Err(e) => return Some(Err(e)),
-                Ok(d) => d,
-            };
-
-            let sum_of_increase = counts
-                .rolling_increase
-                .iter()
-                .copied()
-                .map(u64::from)
-                .sum::<u64>();
-            let incidence = sum_of_increase as f64 * 100_000.0 / population;
-            d.incidence_calculated = incidence;
-
-            counts.rolling_increase.copy_within(1..7, 0);
-            counts.rolling_increase[6] = d.cases.reported;
-
-            macro_rules! inc {
-                ($($value:ident),+) => {{
-                    $(
-                        if d.$value.total > 0 {
-                            d.$value.increase = d.$value.total.saturating_sub(counts.$value);
-                            counts.$value = d.$value.total;
-                        } else {
-                            counts.$value += d.$value.increase;
-                            d.$value.total = counts.$value;
-                        }
-                    )+
-                }};
-            }
-
-            inc!(cases, deaths, recoveries, hospitalisations);
-
-            Some(Ok(d))
-        })
         .collect::<Result<Vec<_>>>()?;
 
     Ok(attributes)
+}
+
+#[instrument]
+pub fn correct_data<I, II>(data_points: I, population: f64) -> Vec<DataPoint>
+where
+    I: IntoIterator<Item = II> + std::fmt::Debug,
+    II: IntoIterator<Item = DataPoint>,
+{
+    fn merge(pop: f64, counts: &mut Counts, mut data_point: DataPoint) -> Option<DataPoint> {
+        let sum_of_increase = counts
+            .rolling_increase
+            .iter()
+            .copied()
+            .map(u64::from)
+            .sum::<u64>();
+        let incidence = sum_of_increase as f64 * 100_000.0 / pop;
+        data_point.incidence_calculated = incidence;
+
+        counts.rolling_increase.copy_within(1..7, 0);
+        counts.rolling_increase[6] = data_point.cases.reported;
+
+        macro_rules! inc {
+            ($($value:ident),+) => {{
+                $(
+                    if data_point.$value.total > 0 {
+                        data_point.$value.increase = data_point.$value.total.saturating_sub(counts.$value);
+                        counts.$value = data_point.$value.total;
+                    } else {
+                        counts.$value += data_point.$value.increase;
+                        data_point.$value.total = counts.$value;
+                    }
+                )+
+            }};
+        }
+
+        inc!(cases, deaths, recoveries, hospitalisations);
+
+        Some(data_point)
+    }
+
+    data_points
+        .into_iter()
+        .flatten()
+        .scan(Counts::default(), |counts, d| merge(population, counts, d))
+        .collect()
 }
 
 #[derive(Debug, Default)]
