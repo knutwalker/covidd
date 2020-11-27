@@ -13,7 +13,7 @@ repository = "https://github.com/knutwalker/covidd/"
 atty = "0.2.14"
 chrono = { version = "0.4.19", features = ["serde"] }
 clap = "3.0.0-beta.2"
-color-eyre = { version = "0.5.7", features = ["issue-url"] }
+color-eyre = { version = "0.5.8", features = ["issue-url"] }
 crossterm = "0.18.2"
 csv = "1.1.4"
 directories = "3.0.1"
