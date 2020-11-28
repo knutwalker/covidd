@@ -1,2 +1,0 @@
-pre-release-commit-message  = "Release {{crate_name}} {{version}}"
-no-dev-version = true

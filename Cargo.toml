@@ -46,3 +46,8 @@ lto = true
 opt-level = 2
 rpath = false
 
+[package.metadata.release]
+pre-release-commit-message = "Release {{crate_name}} {{version}}"
+sign-commit = true
+sign-tag = true
+no-dev-version = true
