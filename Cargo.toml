@@ -17,7 +17,7 @@ color-eyre = { version = "0.5.10", features = ["issue-url"] }
 crossterm = "0.18.2"
 csv = "1.1.5"
 directories = "3.0.1"
-eyre = "0.6.3"
+eyre = "0.6.5"
 fs2 = "0.4.3"
 humantime = "2.1.0"
 locale_config = "0.3.0"
