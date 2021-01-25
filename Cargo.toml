@@ -19,7 +19,7 @@ csv = "1.1.5"
 directories = "3.0.1"
 eyre = "0.6.3"
 fs2 = "0.4.3"
-humantime = "2.0.1"
+humantime = "2.1.0"
 locale_config = "0.3.0"
 minreq = { version = "2.3.0", features = ["https", "json-using-serde"] }
 serde = { version = "1.0.122", features = ["derive"] }
