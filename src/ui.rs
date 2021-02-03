@@ -6,12 +6,12 @@ use crate::{
 use crossterm::{
     event::{
         self, DisableMouseCapture, EnableMouseCapture, Event as CEvent, KeyCode, KeyEvent,
-        MouseEvent,
+        MouseEventKind,
     },
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::io::{stdout, Write};
+use std::io::stdout;
 use tui::{
     backend::CrosstermBackend,
     layout::Constraint,
@@ -63,8 +63,12 @@ pub fn draw(data_points: &[DataPoint], msg: Messages) -> Result<()> {
                     KeyCode::Esc | KeyCode::Home | KeyCode::Char('0') => break Event::AllData,
                     _ => {}
                 },
-                CEvent::Mouse(MouseEvent::ScrollUp(..)) => break Event::ZoomIn(1),
-                CEvent::Mouse(MouseEvent::ScrollDown(..)) => break Event::ZoomOut(1),
+                CEvent::Mouse(me) if matches!(me.kind, MouseEventKind::ScrollUp) => {
+                    break Event::ZoomIn(1)
+                }
+                CEvent::Mouse(me) if matches!(me.kind, MouseEventKind::ScrollDown) => {
+                    break Event::ZoomOut(1)
+                }
                 CEvent::Resize(_, _) => break Event::ZoomOut(0), // re-render
                 _ => {}
             }
