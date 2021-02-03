@@ -1,6 +1,6 @@
 [package]
 name = "covidd"
-version = "0.1.8"
+version = "0.1.9"
 authors = ["Paul Horn <developer@knutwalker.de>"]
 description = "Render current covid data for Dresden in the terminal"
 edition = "2018"
