@@ -71,7 +71,7 @@ pub fn get_current_data(timeout: Duration, population: f64, skip: usize) -> Resu
 
 #[instrument(err)]
 pub fn get_full_data(timeout: Duration, population: f64) -> Result<Vec<DataPoint>> {
-    static CSV_URL: &str = "https://opendata.dresden.de/duva2ckan/files/de-sn-dresden-corona_-_covid-19_-_fallzahlen_md1_dresden_2020/content";
+    static CSV_URL: &str = "https://opendata.dresden.de/duva2ckan/files/de-sn-dresden-corona_-_covid-19_-_fallzahlen_md1_dresden_2020ff/content";
 
     debug!("Reading CSV from data portal");
 
@@ -105,12 +105,12 @@ pub fn get_full_data(timeout: Duration, population: f64) -> Result<Vec<DataPoint
                 cases_total: Some(record[5].parse()?),
                 cases_increase: None,
                 cases_reported: Some(record[4].parse()?),
-                deaths_total: Some(record[9].parse()?),
-                deaths_increase: Some(record[8].parse()?),
-                recoveries_total: Some(record[11].parse()?),
-                recoveries_increase: Some(record[10].parse()?),
-                hospitalisations_total: Some(record[7].parse()?),
-                hospitalisations_increase: Some(record[6].parse()?),
+                deaths_total: Some(record[10].parse()?),
+                deaths_increase: Some(record[9].parse()?),
+                recoveries_total: Some(record[12].parse()?),
+                recoveries_increase: Some(record[11].parse()?),
+                hospitalisations_total: Some(record[8].parse()?),
+                hospitalisations_increase: Some(record[7].parse()?),
                 hospitalisations_beds_in_use: None,
             };
             Ok(attributes)
