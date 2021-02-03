@@ -10,3 +10,50 @@ alias = "test"
 
 [tasks.r]
 alias = "readme"
+
+[tasks.build-mac-universal]
+dependencies = ["shasum-mac-universal"]
+
+[tasks.build-mac-x86_64]
+command = "cargo"
+args = ["build", "--release", "--target=x86_64-apple-darwin"]
+
+[tasks.build-mac-aarch64]
+command = "cargo"
+args = ["build", "--release", "--target=aarch64-apple-darwin"]
+
+[tasks.create-mac-universal-target]
+command = "mkdir"
+args = ["-p", "target/universal-apple-darwin"]
+
+[tasks.bundle-mac-universal]
+command = "lipo"
+args = [
+    "target/x86_64-apple-darwin/release/${CARGO_MAKE_BINARY_EXECUTABLE_NAME}",
+    "target/aarch64-apple-darwin/release/${CARGO_MAKE_BINARY_EXECUTABLE_NAME}",
+    "-create",
+    "-output",
+    "target/universal-apple-darwin/${CARGO_MAKE_BINARY_EXECUTABLE_NAME}-universal-apple-darwin"
+]
+dependencies = [
+    "build-mac-x86_64",
+    "build-mac-aarch64",
+    "create-mac-universal-target"
+]
+
+[tasks.zip-mac-universal]
+command = "tar"
+args = [
+    "czcf",
+    "target/universal-apple-darwin/${CARGO_MAKE_BINARY_EXECUTABLE_NAME}-universal-apple-darwin.tar.gz",
+    "target/universal-apple-darwin/${CARGO_MAKE_BINARY_EXECUTABLE_NAME}-universal-apple-darwin"
+]
+dependencies = [ "bundle-mac-universal" ]
+
+[tasks.shasum-mac-universal]
+script = '''
+pushd target/universal-apple-darwin
+shasum -b -a 256 ${CARGO_MAKE_BINARY_EXECUTABLE_NAME}-universal-apple-darwin.tar.gz > ${CARGO_MAKE_BINARY_EXECUTABLE_NAME}-universal-apple-darwin.sha256
+popd
+'''
+dependencies = [ "zip-mac-universal" ]
