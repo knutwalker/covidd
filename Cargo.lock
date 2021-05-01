@@ -502,9 +502,9 @@ dependencies = [
 
 [[package]]
 name = "minreq"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85b112458b07e0864c7415847c423fe758c7189a28e72347e95d92c4bfd33f5d"
+checksum = "781e56f7d29192378f0a04948b1e6aec67ce561273b2dd26ac510bbe88d7be70"
 dependencies = [
  "lazy_static",
  "rustls",
