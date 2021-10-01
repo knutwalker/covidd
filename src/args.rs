@@ -1,7 +1,5 @@
 use clap::{
-    AppSettings::{
-        ColoredHelp, DeriveDisplayOrder, GlobalVersion, InferSubcommands, VersionlessSubcommands,
-    },
+    AppSettings::{ColoredHelp, DeriveDisplayOrder, InferSubcommands, NoAutoVersion},
     Clap,
 };
 use humantime::Duration;
@@ -25,7 +23,7 @@ impl Command {
 
 /// Download and render latest COVID-19 statistics for Dresden
 #[derive(Clap, Debug)]
-#[clap(version, about, author = "@knutwalker", global_setting = ColoredHelp, global_setting = DeriveDisplayOrder, global_setting = GlobalVersion, global_setting = InferSubcommands, global_setting = VersionlessSubcommands)]
+#[clap(version, about, author = "@knutwalker", global_setting = ColoredHelp, global_setting = DeriveDisplayOrder, global_setting = InferSubcommands, global_setting = NoAutoVersion)]
 pub struct Args {
     #[clap(flatten)]
     run: Run,
