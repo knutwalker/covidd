@@ -77,7 +77,7 @@ pub struct Cases {
     pub total: u32,
 
     #[serde(rename = "Zuwachs_Fallzahl")]
-    pub increase: u32,
+    pub increase: i32,
 
     #[serde(rename = "Fälle_Meldedatum")]
     pub reported: u32,
@@ -89,7 +89,7 @@ pub struct Deaths {
     pub total: u32,
 
     #[serde(rename = "Zuwachs_Sterbefall")]
-    pub increase: u32,
+    pub increase: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
@@ -98,7 +98,7 @@ pub struct Recoveries {
     pub total: u32,
 
     #[serde(rename = "Zuwachs_Genesung")]
-    pub increase: u32,
+    pub increase: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
@@ -107,7 +107,7 @@ pub struct Hospitalisations {
     pub total: u32,
 
     #[serde(rename = "Zuwachs_Krankenhauseinweisung")]
-    pub increase: u32,
+    pub increase: i32,
 
     #[serde(rename = "BelegteBetten")]
     pub beds_in_use: u32,
@@ -147,7 +147,7 @@ pub struct ApiAttributes {
     pub cases_total: Option<u32>,
 
     #[serde(rename = "Zuwachs_Fallzahl")]
-    pub cases_increase: Option<u32>,
+    pub cases_increase: Option<i32>,
 
     #[serde(rename = "Fälle_Meldedatum")]
     pub cases_reported: Option<u32>,
@@ -156,19 +156,19 @@ pub struct ApiAttributes {
     pub deaths_total: Option<u32>,
 
     #[serde(rename = "Zuwachs_Sterbefall")]
-    pub deaths_increase: Option<u32>,
+    pub deaths_increase: Option<i32>,
 
     #[serde(rename = "Genesungsfall")]
     pub recoveries_total: Option<u32>,
 
     #[serde(rename = "Zuwachs_Genesung")]
-    pub recoveries_increase: Option<u32>,
+    pub recoveries_increase: Option<i32>,
 
     #[serde(rename = "Hospitalisierung")]
     pub hospitalisations_total: Option<u32>,
 
     #[serde(rename = "Zuwachs_Krankenhauseinweisung")]
-    pub hospitalisations_increase: Option<u32>,
+    pub hospitalisations_increase: Option<i32>,
 
     #[serde(rename = "BelegteBetten")]
     pub hospitalisations_beds_in_use: Option<u32>,

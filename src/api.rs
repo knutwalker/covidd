@@ -147,10 +147,10 @@ where
             ($($value:ident),+) => {{
                 $(
                     if data_point.$value.total > 0 {
-                        data_point.$value.increase = data_point.$value.total.saturating_sub(counts.$value);
+                        data_point.$value.increase = data_point.$value.total as i32 - counts.$value as i32;
                         counts.$value = data_point.$value.total;
                     } else {
-                        counts.$value += data_point.$value.increase;
+                        counts.$value = (counts.$value as i32 + data_point.$value.increase) as _;
                         data_point.$value.total = counts.$value;
                     }
                 )+
