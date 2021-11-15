@@ -3,7 +3,9 @@ use crate::{
     Result,
 };
 use chrono::{NaiveDate, TimeZone, Utc};
+use color_eyre::eyre::eyre;
 use std::{convert::TryFrom, io::Cursor, time::Duration};
+use tracing::{debug, instrument, warn};
 
 static UA: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 

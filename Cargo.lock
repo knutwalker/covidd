@@ -205,7 +205,6 @@ dependencies = [
  "crossterm",
  "csv",
  "directories",
- "eyre",
  "fs2",
  "humantime",
  "locale_config",

@@ -1,5 +1,5 @@
 use crate::{
-    data::{CachedData, CachingData, Data},
+    data::{CachedData, CachingData, DataRef},
     Result,
 };
 use directories::ProjectDirs;
@@ -9,6 +9,7 @@ use std::{
     io::ErrorKind,
     path::{Path, PathBuf},
 };
+use tracing::{instrument, trace, warn};
 
 static APPLICATION: &str = env!("CARGO_PKG_NAME");
 static CACHE_FILE: &str = "cached_data.json";
@@ -59,14 +60,14 @@ pub fn get_cached() -> Result<Option<(PathBuf, CachedData)>> {
 }
 
 #[instrument(skip(data))]
-pub fn store_data(data: &Data) -> Result<()> {
+pub fn store_data(data: DataRef<'_>) -> Result<()> {
     let cache_file = match cache_file() {
         None => return Ok(()),
         Some(file) => file,
     };
     trace!("cache file {}", cache_file.display());
 
-    match write_to_file(&cache_file, &data) {
+    match write_to_file(&cache_file, data) {
         Ok(()) => Ok(()),
         Err(e) => {
             if let Some(ioe) = e.downcast_ref::<std::io::Error>() {
@@ -133,7 +134,7 @@ pub fn remove_cache() -> Result<()> {
     }
 }
 
-pub fn cache_file() -> Option<PathBuf> {
+fn cache_file() -> Option<PathBuf> {
     let dirs = ProjectDirs::from("de", "knutwalker", APPLICATION)?;
     let mut file = dirs.cache_dir().to_path_buf();
     file.push(CACHE_FILE);
@@ -154,7 +155,7 @@ fn read_from_open_file(file: File) -> Result<CachedData> {
 }
 
 #[instrument(skip(data), err)]
-fn write_to_file(file: impl AsRef<Path> + Debug, data: &Data) -> Result<()> {
+fn write_to_file(file: impl AsRef<Path> + Debug, data: DataRef<'_>) -> Result<()> {
     let file = file.as_ref();
     if let Some(parent) = file.parent() {
         if !parent.exists() {
@@ -165,7 +166,7 @@ fn write_to_file(file: impl AsRef<Path> + Debug, data: &Data) -> Result<()> {
     let file = try_lock_file_for_writing(file)?;
     let data = CachingData {
         created_at: chrono::Utc::now(),
-        attributes: &data[..],
+        attributes: data,
     };
     write_to_open_file(file, data)
 }
@@ -175,7 +176,7 @@ fn remove_file(file: impl AsRef<Path> + Debug) -> Result<()> {
     Ok(std::fs::remove_file(file)?)
 }
 
-fn write_to_open_file(file: File, data: CachingData) -> Result<()> {
+fn write_to_open_file(file: File, data: CachingData<'_>) -> Result<()> {
     serde_json::to_writer_pretty(file, &data)?;
     Ok(())
 }

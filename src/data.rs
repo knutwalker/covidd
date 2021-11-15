@@ -7,19 +7,20 @@ use std::{convert::TryFrom, fmt::Debug};
 use tracing::instrument;
 
 pub type Data = Vec<DataPoint>;
+pub type DataRef<'a> = &'a [DataPoint];
 
 #[derive(Debug, Deserialize)]
 pub struct CachedData {
     #[serde(with = "chrono::serde::ts_seconds")]
     pub created_at: DateTime<Utc>,
-    pub attributes: Vec<DataPoint>,
+    pub attributes: Data,
 }
 
 #[derive(Debug, Serialize)]
 pub struct CachingData<'a> {
     #[serde(with = "chrono::serde::ts_seconds")]
     pub created_at: DateTime<Utc>,
-    pub attributes: &'a [DataPoint],
+    pub attributes: DataRef<'a>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -270,7 +271,7 @@ mod date_format {
 
     #[instrument(err)]
     fn parse(date: &str) -> Result<Date<Utc>, chrono::ParseError> {
-        let date = NaiveDate::parse_from_str(&date, FORMAT)?;
+        let date = NaiveDate::parse_from_str(date, FORMAT)?;
         let date = Utc.from_utc_date(&date);
         Ok(date)
     }
@@ -308,7 +309,7 @@ mod date_format_or_null {
             None => return Ok(None),
             Some(date) => date,
         };
-        let date = NaiveDate::parse_from_str(&date, FORMAT)?;
+        let date = NaiveDate::parse_from_str(date, FORMAT)?;
         let date = Utc.from_utc_date(&date);
         Ok(Some(date))
     }

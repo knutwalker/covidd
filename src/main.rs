@@ -41,18 +41,13 @@ Run `covidd --help` for an overview of more available options.
 ![have a look at doc/screenshot.png](https://knutwalker.s3.eu-central-1.amazonaws.com/covidd/doc/screenshot.png)
 
 */
-
-#[macro_use]
-extern crate eyre;
-#[macro_use]
-extern crate tracing;
-
 use std::fmt::Display;
 
 use args::{CacheCommand, Command, Run};
 use chrono::{DateTime, Duration, Utc};
-use color_eyre::{Help, Result};
+use color_eyre::{eyre::eyre, Help, Result};
 use data::{CachedData, Data, DataPoint};
+use tracing::{debug, instrument, trace, warn};
 
 mod api;
 mod args;
@@ -161,9 +156,9 @@ fn cached_data_if_current(
 fn data_from_cache(force: bool) -> Result<Option<CachedData>> {
     let cached = cache::get_cached_data()?;
     if force && cached.is_none() {
-        Err(eyre!("--cache is defined, but there is not cached data available").suggestion(
+        return Err(eyre!("--cache is defined, but there is not cached data available").suggestion(
             "Run the `cache refresh` subcommand to set a new cache. Treat any warnings as errors.",
-        ))?;
+        ));
     }
     Ok(cached)
 }

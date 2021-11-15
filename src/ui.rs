@@ -12,6 +12,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io::stdout;
+use tracing::{debug, instrument, trace};
 use tui::{
     backend::CrosstermBackend,
     layout::Constraint,
@@ -98,7 +99,7 @@ pub fn draw(data_points: &[DataPoint], msg: Messages) -> Result<()> {
     Ok(())
 }
 
-fn draw_charts<B>(f: &mut Frame<B>, data_points: &[DataPoint], msg: &Messages)
+fn draw_charts<B>(f: &mut Frame<'_, B>, data_points: &[DataPoint], msg: &Messages)
 where
     B: tui::backend::Backend,
 {
@@ -150,7 +151,7 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
         .iter()
         .map(|d| d.incidence_calculated)
         .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap_or_default() as f64;
+        .unwrap_or_default();
 
     let incidence_scale = max_bound / max_incidence;
 
@@ -272,7 +273,11 @@ fn chart_data(area: Rect, data_points: &[DataPoint]) -> ChartData {
     }
 }
 
-fn draw_chart_data<B: tui::backend::Backend>(f: &mut Frame<B>, data: ChartData, msg: &Messages) {
+fn draw_chart_data<B: tui::backend::Backend>(
+    f: &mut Frame<'_, B>,
+    data: ChartData,
+    msg: &Messages,
+) {
     let recovered = msg.get(
         MsgId::Recovered,
         data.recoveries.last().copied().unwrap_or_default().1 as u32,

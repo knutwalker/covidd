@@ -24,7 +24,7 @@ impl Command {
 /// Download and render latest COVID-19 statistics for Dresden
 #[derive(Parser, Debug)]
 #[clap(version, about, author = "@knutwalker", global_setting = DeriveDisplayOrder, global_setting = InferSubcommands, global_setting = NoAutoVersion)]
-pub struct Args {
+struct Args {
     #[clap(flatten)]
     run: Run,
 
