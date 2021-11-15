@@ -1,6 +1,6 @@
 use clap::{
-    AppSettings::{ColoredHelp, DeriveDisplayOrder, InferSubcommands, NoAutoVersion},
-    Clap,
+    AppSettings::{DeriveDisplayOrder, InferSubcommands, NoAutoVersion},
+    Parser,
 };
 use humantime::Duration;
 
@@ -22,8 +22,8 @@ impl Command {
 }
 
 /// Download and render latest COVID-19 statistics for Dresden
-#[derive(Clap, Debug)]
-#[clap(version, about, author = "@knutwalker", global_setting = ColoredHelp, global_setting = DeriveDisplayOrder, global_setting = InferSubcommands, global_setting = NoAutoVersion)]
+#[derive(Parser, Debug)]
+#[clap(version, about, author = "@knutwalker", global_setting = DeriveDisplayOrder, global_setting = InferSubcommands, global_setting = NoAutoVersion)]
 pub struct Args {
     #[clap(flatten)]
     run: Run,
@@ -33,7 +33,7 @@ pub struct Args {
 }
 
 /// Default run command
-#[derive(Clap, Debug)]
+#[derive(Parser, Debug)]
 pub struct Run {
     /// Print more logs, can be used multiple times
     #[clap(short, long, parse(from_occurrences), conflicts_with = "quiet")]
@@ -78,20 +78,20 @@ impl Default for Run {
     }
 }
 
-#[derive(Clap, Debug)]
+#[derive(Parser, Debug)]
 pub enum Command {
     Cache(Cache),
     Run(Run),
 }
 
 /// Operation on the cache for the data downloads
-#[derive(Clap, Debug)]
+#[derive(Parser, Debug)]
 pub struct Cache {
     #[clap(subcommand)]
     pub cmd: CacheCommand,
 }
 
-#[derive(Clap, Debug)]
+#[derive(Parser, Debug)]
 pub enum CacheCommand {
     /// Lists the file(s) currently in the cache
     List,
