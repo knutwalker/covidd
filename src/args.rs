@@ -1,5 +1,5 @@
 use clap::{
-    AppSettings::{DeriveDisplayOrder, InferSubcommands, NoAutoVersion},
+    AppSettings::{DeriveDisplayOrder, NoAutoVersion},
     Parser,
 };
 use humantime::Duration;
@@ -23,7 +23,7 @@ impl Command {
 
 /// Download and render latest COVID-19 statistics for Dresden
 #[derive(Parser, Debug)]
-#[clap(version, about, author = "@knutwalker", global_setting = DeriveDisplayOrder, global_setting = InferSubcommands, global_setting = NoAutoVersion)]
+#[clap(version, about, author = "@knutwalker", infer_subcommands = true, global_setting = DeriveDisplayOrder, global_setting = NoAutoVersion)]
 struct Args {
     #[clap(flatten)]
     run: Run,
@@ -60,7 +60,7 @@ pub struct Run {
     pub timeout: Duration,
 
     /// Skip the rendering of the UI
-    #[clap(long, hidden = true)]
+    #[clap(long, hide = true)]
     pub no_ui: bool,
 }
 
