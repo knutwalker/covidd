@@ -16,7 +16,7 @@ atty = "0.2.14"
 chrono = { version = "0.4.19", features = ["serde"] }
 clap = { version = "3.1.2", features = ["derive"] }
 color-eyre = { version = "0.6.1", features = ["issue-url"] }
-crossterm = "0.23.0"
+crossterm = "0.24.0"
 csv = "1.1.6"
 directories = "4.0.1"
 fs2 = "0.4.3"
