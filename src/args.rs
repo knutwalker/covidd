@@ -1,7 +1,4 @@
-use clap::{
-    AppSettings::{DeriveDisplayOrder, NoAutoVersion},
-    Parser,
-};
+use clap::{ArgAction, Parser};
 use humantime::Duration;
 
 impl Command {
@@ -23,7 +20,13 @@ impl Command {
 
 /// Download and render latest COVID-19 statistics for Dresden
 #[derive(Parser, Debug)]
-#[clap(version, about, author = "@knutwalker", infer_subcommands = true, global_setting = DeriveDisplayOrder, global_setting = NoAutoVersion)]
+#[command(
+    version,
+    about,
+    author = "@knutwalker",
+    infer_subcommands = true,
+    disable_version_flag = true
+)]
 struct Args {
     #[clap(flatten)]
     run: Run,
@@ -36,31 +39,31 @@ struct Args {
 #[derive(Parser, Debug)]
 pub struct Run {
     /// Print more logs, can be used multiple times
-    #[clap(short, long, parse(from_occurrences), conflicts_with = "quiet")]
+    #[arg(short, long, action = ArgAction::Count, conflicts_with = "quiet")]
     pub verbose: u8,
 
     /// Print less logs, can be used multiple times
-    #[clap(short, long, parse(from_occurrences), conflicts_with = "verbose")]
+    #[arg(short, long, action = ArgAction::Count, conflicts_with = "verbose")]
     pub quiet: u8,
 
     /// Force download of new data before running
-    #[clap(short, long, visible_alias = "download", conflicts_with = "cache")]
+    #[arg(short, long, visible_alias = "download", conflicts_with = "cache")]
     pub force: bool,
 
     /// Force the use of cached data, never download
-    #[clap(short, long, visible_alias = "offline", conflicts_with = "force")]
+    #[arg(short, long, visible_alias = "offline", conflicts_with = "force")]
     pub cache: bool,
 
     /// Consider cached data stale after this duration
-    #[clap(short, long, conflicts_with = "cache", default_value = "1 hour")]
+    #[arg(short, long, conflicts_with = "cache", default_value = "1 hour")]
     pub stale_after: Duration,
 
     /// Timeout for the API call if new data needs to be fetched
-    #[clap(short, long, conflicts_with = "cache", default_value = "10 seconds")]
+    #[arg(short, long, conflicts_with = "cache", default_value = "10 seconds")]
     pub timeout: Duration,
 
     /// Skip the rendering of the UI
-    #[clap(long, hide = true)]
+    #[arg(long, hide = true)]
     pub no_ui: bool,
 }
 
