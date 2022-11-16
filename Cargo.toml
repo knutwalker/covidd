@@ -14,7 +14,7 @@ rust-version = "1.56"
 [dependencies]
 atty = "0.2.14"
 chrono = { version = "0.4.22", features = ["serde"] }
-clap = { version = "4.0.18", features = ["derive", "deprecated"] }
+clap = { version = "4.0.25", features = ["derive", "deprecated"] }
 color-eyre = { version = "0.6.2", features = ["issue-url"] }
 crossterm = "0.25.0"
 csv = "1.1.6"
